@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+before_install:
+    - docker build -t ramirocorbalan/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run ramirocorbalan/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t ramirocorbalan/multi-client ./client
+    - docker build -t ramirocorbalan/multi-nginx ./nginx
+    - docker build -t ramirocorbalan/multi-server ./server
+    - docker build -t ramirocorbalan/multi-worker .worker
+
+#login to docker cli
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+#push to docker hub
+    - docker push ramirocorbalan/multi-client
+    - docker push ramirocorbalan/multi-nginx
+    - docker push ramirocorbalan/multi-server
+    - docker push ramirocorbalan/multi-worker
